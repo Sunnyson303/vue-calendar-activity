@@ -6,7 +6,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
   <body>
-  
-  <script src="dist/bundle.js"></script>
+    <div id="app">
+      <calendar-activity :show="show" :select="select"></calendar-activity>
+    </div>
+  <script src="//cdn.bootcss.com/vue/2.1.10/vue.js"></script>
+  <script src="dist/vue-calendar-activity.js"></script>
+  <script>
+    new Vue({
+      el: '#app',
+      data() {
+        return {
+          show: true,
+        }
+      },
+      methods: {
+        select(val) {
+          console.log('select date is ', val)
+        }
+      }
+    })
+  </script>
   </body>
 </html>

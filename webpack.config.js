@@ -3,11 +3,11 @@ var path = require('path')
 module.exports = {
   entry: './src/index.js',
   output: {
-    filename: 'bundle.js',
+    filename: 'vue-calendar-activity.js',
     path: path.resolve(__dirname, 'dist')
   },
   devServer: {
-    contentBase: path.join(__dirname, 'exemples'),
+    contentBase: path.join(__dirname, 'examples'),
     publicPath: '/dist/',
     compress: true,
     port: 9000

@@ -2,11 +2,12 @@
   "name": "vue-calendar-activity",
   "version": "1.0.0",
   "description": "calendar-activity for Vue.js",
-  "main": "webpack.config.js",
+  "main": "dist/vue-calendar-activity.js",
+  "module": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "webpack-dev-server --open",
-    "build": "webpack"
+    "build": "webpack --progress"
   },
   "repository": {
     "type": "git",
@@ -19,6 +20,13 @@
   },
   "homepage": "https://github.com/Sunnyson303/vue-calendar-activity#readme",
   "dependencies": {
-    "webpack": "^2.2.1"
+    "css-loader": "^0.26.1",
+    "less": "^2.7.2",
+    "less-loader": "^2.2.3",
+    "vue": "^2.1.10",
+    "vue-loader": "^11.1.0",
+    "vue-template-compiler": "^2.1.10",
+    "webpack": "^2.2.1",
+    "webpack-dev-server": "^2.4.1"
   }
 }
