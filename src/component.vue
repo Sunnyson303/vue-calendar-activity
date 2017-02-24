@@ -5,17 +5,16 @@
       <span class="calendar-curr-year">{{this.year}}</span> /
       <span class="calendar-curr-month">{{this.month}}</span>
       <i class="calendar-next"> &gt; </i>
+      <i class="icon icon-plus" @click="addActivity()"> + </i>
     </div>
     <div class="calendar-body">
       <div class="calendar-weeks">
         <div class="calendar-week" v-for="item in weeks">{{item}}</div>
       </div>
       <div class="calendar-days">
-        <div class="calendar-days-line" v-for="line in days">
-          <div class="calendar-day" 
-            :class="{'calendar-day-dis': item.disabled, 'calendar-day-today': item.today}" 
-            v-for="item in line" 
-            @click="select(new Date(year, month, item.day))">
+        <div class="calendar-days-line" v-for="(line, l) in days">
+          <div class="calendar-day" :class="{'calendar-day-dis': item.disabled, 'calendar-day-today': item.today, 'calendar-day-selected': item.selected}"
+            v-for="(item, i) in line" @click="handleDayClick(l, i)">
             {{item.day | zero}}
           </div>
         </div>
@@ -25,15 +24,30 @@
       <div class="calendar-time"></div>
       <div class="calendar-btns">
         <div class="calendar-btn calendar-btn-today">今天</div>
-        <div class="calendar-btn calendar-btn-cancle">取消</div>
+        <div class="calendar-btn calendar-btn-confirm">确定</div>
+        <div class="calendar-btn calendar-btn-cancel">取消</div>
       </div>
     </div>
-    <div class="calendar-activity" slot="activity"></div>
+
+    <activity 
+      v-model="activityModal.show" 
+      :title="activityModal.title" 
+      :content="activityTitle" 
+      :start-date="activityModal.startDate"
+      :end-date="activityModal.endDate"
+      :finish="activityAdded"
+      >
+    </activity>
   </div>
 </template>
 <script>
+  import dateFormat from 'dateformat'
+  import activity from './activity.vue'
   export default {
     name: 'CalendarActivity',
+    components: {
+      activity
+    },
     props: {
       type: {
         type: String,
@@ -50,14 +64,25 @@
         default () {
           return ['日', '一', '二', '三', '四', '五', '六']
         }
-      }
+      },
+      activityList: [],
+      finish: Function
     },
     data() {
+      let now = new Date()
       return {
-        year: '',
-        month: '',
-        day: '',
-        days: []
+        year: now.getFullYear(),
+        month: now.getMonth(),
+        day: now.getDate(),
+        days: [],
+        activityModal: {
+          show: true,
+          startDate: dateFormat(now, 'isoDate'),
+          startTime: dateFormat(now, 'HH:mm'),
+          endDate: dateFormat(now, 'isoDate'),
+          endTime: dateFormat(now, 'HH:mm'),
+        },
+        activityTitle: ''
       }
     },
     filters: {
@@ -67,6 +92,8 @@
     },
     created() {
       this.init()
+    },
+    watch:{
     },
     methods: {
       init() {
@@ -102,17 +129,18 @@
               lastMonthStart++
             }
           }
-          if(today.getDate() === i) {
+          // 今天
+          if (today.getDate() === i) {
             temp[line].push({
               day: i,
-              selected: true,
               today: true
             })
-          }
+          } else {
             temp[line].push({
               day: i,
               selected: false
             })
+          }
           if (i_day === 6) {
             line++
           }
@@ -127,6 +155,34 @@
           }
         }
         this.days = temp
+      },
+      handleDayClick(l, i) {
+        this.days.forEach((line) => {
+          line.forEach((day) => {
+            day.selected = false
+          })
+        })
+
+        let item = this.days[l][i]
+        let day = item.day
+        if (!item.disabled) {
+          if (item.selected) {
+            item.selected = false
+          } else {
+            item.selected = true
+            this.day = day
+          }
+        }
+      },
+      addActivity() {
+        this.activityModal.show = true
+      },
+      activityAdded({title, content, start, end}) {
+        console.log(title, content, start, end);
+        this.activityList.push({
+          title,
+          content
+        })
       }
     }
   };
@@ -152,6 +208,13 @@
       .calendar-next {
         margin-left: 10px;
       }
+      .icon.icon-plus {
+        position: absolute;
+        right: 20px;
+        font-weight: bold;
+        font-size: 26px;
+        top: 13px;
+      }
     }
     .calendar-body {
       .calendar-weeks {
@@ -172,6 +235,10 @@
               background: @color;
               color: @white;
             }
+            &.calendar-day-selected {
+              background: #383A3F;
+              color: @white;
+            }
           }
         }
       }
@@ -183,7 +250,8 @@
         justify-content: space-around;
         .calendar-btn {
           border: 1px solid #ddd;
-          padding: 10px 15px;
+          font-size: 14px;
+          padding: 6px 8px;
           color: @color;
           border-radis: 2px;
           &.calendar-btn-today {

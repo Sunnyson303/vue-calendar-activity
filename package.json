@@ -21,6 +21,7 @@
   "homepage": "https://github.com/Sunnyson303/vue-calendar-activity#readme",
   "dependencies": {
     "css-loader": "^0.26.1",
+    "dateformat": "^2.0.0",
     "less": "^2.7.2",
     "less-loader": "^2.2.3",
     "vue": "^2.1.10",
