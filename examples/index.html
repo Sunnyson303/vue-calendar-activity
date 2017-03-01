@@ -1,22 +1,96 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <title></title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-  </head>
-  <body>
-    <div id="app">
-      <calendar-activity :show="show" :select="select"></calendar-activity>
-    </div>
+
+<head>
+  <title></title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="http://m.51ykd.com/Frontend/MUI/Css/Style.css">
+  <link rel="stylesheet" href="http://m.51ykd.com/globalResources/YKDFont/iconFont.css" />
+  <link href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <style>
+    .calendar-introductions {
+      display: flex;
+      font-size: 14px;
+      border-top: 1px solid #ddd;
+      border-bottom: 1px solid #ddd;
+      padding: 3px 15px;
+      margin: 5px 0;
+    }
+    
+    .calendar-introductions .calendar-introductions-item {
+      margin-right: 10px;
+    }
+    
+    .calendar-introductions span.icon {
+      display: inline-block;
+      width: 22px;
+      height: 22px;
+      text-align: center;
+      line-height: 22px;
+    }
+    
+    .calendar-introductions span.icon.icon-plan-delivery {
+      border: 1px solid #eee;
+      color: #ff5555;
+    }
+    
+    .calendar-introductions span.icon.icon-stop-delivery {
+      background: #ddd;
+    }
+    .calendar-bottom-content .calendar-is-stop-delivery{
+      display: flex;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <calendar-activity :show="show" :select="select" :plan-delivery="planDelivery" :stop-delivery="stopDelivery" :farmer-delivery="farmerDelivery">
+      <div class="calendar-bottom-content" slot="bottom-content">
+        <div class="calendar-introductions">
+          <div class="calendar-introductions-item"><span class="icon icon-plan-delivery">1</span>计划配送日</div>
+          <div class="calendar-introductions-item"><span class="icon icon-stop-delivery">2</span>停配期</div>
+          <div class="calendar-introductions-item"><span class="icon"><i class="fa fa-star"></i></span>自耕配送</div>
+        </div>
+        <div class="calendar-is-stop-delivery">
+          <span>当日是否停配</span>
+          <div class="mui-switch mui-active mui-disabled">
+            <div class="mui-switch-handle"></div>
+          </div>
+        </div>
+      </div>
+    </calendar-activity>
+  </div>
+  <script src="http://m.51ykd.com/Frontend/MUI/Js/MUI.min.js"></script>
+  <script src="http://m.51ykd.com/Frontend/MUI/Js/jQuery-2.2.1.min.js"></script>
   <script src="//cdn.bootcss.com/vue/2.1.10/vue.js"></script>
-  <script src="dist/vue-calendar-activity.js"></script>
+  <script src="//cdn.bootcss.com/moment.js/2.17.1/moment.min.js"></script>
+  <script src="/dist/vue-calendar-activity.js"></script>
   <script>
+    mui.init({
+      swipeBack: true //启用右滑关闭功能
+    });
+    mui('.mui-content .mui-switch').each(function() { //循环所有toggle
+      //toggle.classList.contains('mui-active') 可识别该toggle的开关状态
+      this.parentNode.querySelector('span').innerText = '状态：' + (this.classList.contains('mui-active') ? 'true' : 'false');
+      /**
+       * toggle 事件监听
+       */
+      this.addEventListener('toggle', function(event) {
+        //event.detail.isActive 可直接获取当前状态
+        this.parentNode.querySelector('span').innerText = '状态：' + (event.detail.isActive ? 'true' : 'false');
+      });
+    });
+
     new Vue({
       el: '#app',
       data() {
         return {
           show: true,
+          planDelivery: [moment('2017-3-2').format('YYYY-MM-DD'), moment('2017-3-3').format('YYYY-MM-DD')],
+          stopDelivery: [moment('2017-3-12').format('YYYY-MM-DD'), moment('2017-3-13').format('YYYY-MM-DD')],
+          farmerDelivery: [moment('2017-3-2').format('YYYY-MM-DD'), moment('2017-3-13').format('YYYY-MM-DD')]
         }
       },
       methods: {
@@ -26,5 +100,6 @@
       }
     })
   </script>
-  </body>
+</body>
+
 </html>

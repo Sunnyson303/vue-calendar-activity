@@ -1,11 +1,16 @@
 <template>
   <div class="calendar-wrapper">
     <div class="calendar-header">
-      <i class="calendar-prev"> &lt; </i>
-      <span class="calendar-curr-year">{{this.year}}</span> /
-      <span class="calendar-curr-month">{{this.month}}</span>
-      <i class="calendar-next"> &gt; </i>
-      <i class="icon icon-plus" @click="addActivity()"> + </i>
+      <div class="calendar-btn calendar-btn-today" @click="focusToday()">今天</div>
+      <div>
+        <i class="calendar-prev" @click="prevMonth()"> &lt; </i>
+        <span class="calendar-curr-year">{{this.year}}</span> 年
+        <span class="calendar-curr-month">{{this.month + 1}}</span> 月
+        <i class="calendar-next" @click="nextMonth()"> &gt; </i>
+      </div>
+      <div>
+        <!--<i class="icon icon-plus" @click="addActivity()"> + </i>-->
+      </div>
     </div>
     <div class="calendar-body">
       <div class="calendar-weeks">
@@ -13,9 +18,13 @@
       </div>
       <div class="calendar-days">
         <div class="calendar-days-line" v-for="(line, l) in days">
-          <div class="calendar-day" :class="{'calendar-day-dis': item.disabled, 'calendar-day-today': item.today, 'calendar-day-selected': item.selected}"
+          <div class="calendar-day" 
+            :class="{'calendar-day-dis': item.disabled, 'calendar-day-today': item.today,'calendar-day-selected': item.selected, 'calendar-day-plan-delivery': item.plan, 'calendar-day-stop-delivery': item.stop, 'calendar-day-farmer-delivery': item.farmer}"
             v-for="(item, i) in line" @click="handleDayClick(l, i)">
             {{item.day | zero}}
+            <span class="calendar-today-tips" >今天</span>
+            <i class="fa fa-star calendar-star"></i>
+            <i class="fa fa-location-arrow calendar-location-arrow"></i>
           </div>
         </div>
       </div>
@@ -23,13 +32,11 @@
     <div class="calendar-footer">
       <div class="calendar-time"></div>
       <div class="calendar-btns">
-        <div class="calendar-btn calendar-btn-today">今天</div>
-        <div class="calendar-btn calendar-btn-confirm">确定</div>
-        <div class="calendar-btn calendar-btn-cancel">取消</div>
       </div>
     </div>
-
-    <activity 
+    <slot name="bottom-content">
+    </slot>
+    <!--<activity 
       v-model="activityModal.show" 
       :title="activityModal.title" 
       :content="activityTitle" 
@@ -37,16 +44,17 @@
       :end-date="activityModal.endDate"
       :finish="activityAdded"
       >
-    </activity>
+    </activity>-->
   </div>
 </template>
 <script>
   import dateFormat from 'dateformat'
-  import activity from './activity.vue'
+  import moment from 'moment'
+  // import activity from './activity.vue'
   export default {
     name: 'CalendarActivity',
     components: {
-      activity
+      // activity
     },
     props: {
       type: {
@@ -66,7 +74,24 @@
         }
       },
       activityList: [],
-      finish: Function
+      planDelivery: {
+        type: Array,
+        default () {
+          return []
+        }
+      },
+      stopDelivery: {
+        type: Array,
+        default () {
+          return []
+        }
+      },
+      farmerDelivery: {
+        type: Array,
+        default () {
+          return []
+        }
+      }
     },
     data() {
       let now = new Date()
@@ -75,14 +100,14 @@
         month: now.getMonth(),
         day: now.getDate(),
         days: [],
-        activityModal: {
+        /*activityModal: {
           show: true,
           startDate: dateFormat(now, 'isoDate'),
           startTime: dateFormat(now, 'HH:mm'),
           endDate: dateFormat(now, 'isoDate'),
           endTime: dateFormat(now, 'HH:mm'),
         },
-        activityTitle: ''
+        activityTitle: ''*/
       }
     },
     filters: {
@@ -90,21 +115,21 @@
         return val < 10 ? '0' + val : val
       }
     },
-    created() {
+    mounted() {
       this.init()
     },
-    watch:{
-    },
+    watch: {},
     methods: {
       init() {
         if (!this.value) {
           let today = new Date()
           this.year = today.getFullYear()
-          this.month = today.getMonth() + 1
+          this.month = today.getMonth()
           this.render(this.year, this.month)
         }
       },
       render(y, m) {
+        console.log(this);
         let currMonthFirstDay = new Date(y, m, 1).getDay(), //本月第一天是周几
           currMonthDays = new Date(y, m + 1, 0).getDate(), //本月总天数
           lastMonthDays = new Date(y, m, 0).getDate(), //上个月总天数
@@ -129,18 +154,35 @@
               lastMonthStart++
             }
           }
+
           // 今天
+          let _temp_day = {
+              day: i
+            },
+            _temp_day_format = moment({
+              year: y,
+              month: m,
+              day: i
+            }).format('YYYY-MM-DD')
+
           if (today.getDate() === i) {
-            temp[line].push({
-              day: i,
-              today: true
-            })
+            _temp_day.today = true
           } else {
-            temp[line].push({
-              day: i,
-              selected: false
-            })
+            _temp_day.selected = false
           }
+
+          if (this.planDelivery.indexOf(_temp_day_format) > -1) {
+            _temp_day.plan = true
+          }
+          if (this.stopDelivery.indexOf(_temp_day_format) > -1) {
+            _temp_day.stop = true
+          }
+          if (this.farmerDelivery.indexOf(_temp_day_format) > -1) {
+            _temp_day.farmer = true
+          }
+
+          temp[line].push(_temp_day)
+
           if (i_day === 6) {
             line++
           }
@@ -155,6 +197,21 @@
           }
         }
         this.days = temp
+        this.year = new Date(y, m).getFullYear()
+        this.month = new Date(y, m).getMonth()
+      },
+      prevMonth() {
+        this.render(this.year, --this.month)
+      },
+      nextMonth() {
+        this.render(this.year, ++this.month)
+      },
+      focusToday() {
+        this.days.forEach((line) => {
+          line.forEach((day) => {
+            day.selected = false
+          })
+        })
       },
       handleDayClick(l, i) {
         this.days.forEach((line) => {
@@ -177,8 +234,12 @@
       addActivity() {
         this.activityModal.show = true
       },
-      activityAdded({title, content, start, end}) {
-        console.log(title, content, start, end);
+      activityAdded({
+        title,
+        content,
+        start,
+        end
+      }) {
         this.activityList.push({
           title,
           content
@@ -192,8 +253,42 @@
   @base: #9dd456;
   @color: #77AF9C;
   @white: #fff;
+  @red: #ff5555;
+  @deepred: #E71D36;
+  .border-1-red {
+    border: 1px solid @red;
+  }
+  
+  .block {
+    display: block;
+  }
+  
+  .none {
+    display: none;
+  }
+  
+  .font-12 {
+    font-size: 12px;
+  }
+  
+  .font-10 {
+    font-size: 10px;
+  }
+  
+  .font-9 {
+    font-size: 9px;
+  }
+  
+  .absolute {
+    position: absolute;
+  }
+  
+  .relative {
+    position: relative;
+  }
+  
   .calendar-wrapper {
-    background: #fff;
+    background: #f8f8f8;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, .1);
     border: 1px solid #ccc;
     .calendar-header {
@@ -202,6 +297,11 @@
       padding: 10px 0;
       color: #fff;
       background: @base;
+      .calendar-btn {
+        .absolute;
+        left: 15px;
+        font-size: 12px;
+      }
       .calendar-prev {
         margin-right: 10px;
       }
@@ -221,30 +321,87 @@
         display: flex;
         justify-content: space-around;
         color: @base;
+        padding: 5px;
+        .calendar-week {
+          flex: 1;
+          background: #fff;
+          margin-right: 5px;
+          &:last-child {
+            margin-right: 0;
+          }
+        }
       }
       .calendar-days {
         .calendar-days-line {
           display: flex;
           justify-content: space-around;
+          padding: 5px 5px 0 5px;
+          ;
           .calendar-day {
-            padding: 6px;
+            padding: 0 6px 6px 6px;
+            height: 34px;
+            flex: 1;
+            box-shadow: 0 0 2px rgba(0, 0, 0, .3);
+            margin-right: 5px;
+            background: #fff;
+            font-size: 12px;
+            .relative;
+            &:last-child {
+              margin-right: 0;
+            }
             &.calendar-day-dis {
               color: #999;
+              background: #eee;
             }
             &.calendar-day-today {
-              background: @color;
-              color: @white;
+              .border-1-red;
+              .calendar-today-tips {
+                .block;
+              }
             }
             &.calendar-day-selected {
               background: #383A3F;
               color: @white;
+            }
+            &.calendar-day-plan-delivery {
+              color: @red;
+              .calendar-location-arrow {
+                .block;
+                .absolute;
+                top: 4px;
+                right: 6px;
+              }
+            }
+            &.calendar-day-stop-delivery {
+              background: #ccc;
+            }
+            &.calendar-day-farmer-delivery {
+              .calendar-star {
+                .block;
+                .absolute;
+                right: 6px;
+                bottom: 4px;
+                color: @base;
+              }
+            }
+            .calendar-star,
+            .calendar-location-arrow {
+              .none;
+            }
+            .calendar-today-tips {
+              .none;
+              .font-9;
+              .absolute;
+              right: 6px;
+              bottom: 4px;
+              line-height: normal;
+              color: @red;
             }
           }
         }
       }
     }
     .calendar-footer {
-      margin: 20px 0;
       .calendar-btns {
         display: flex;
         justify-content: space-around;
@@ -259,6 +416,9 @@
           }
         }
       }
+    }
+    i {
+      font-style: normal;
     }
   }
 </style>
