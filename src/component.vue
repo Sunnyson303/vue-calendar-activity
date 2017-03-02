@@ -61,7 +61,7 @@
         type: String,
         default: 'date'
       },
-      selected: Function,
+      daySelect: Function,
       value: '',
       show: {
         type: Boolean,
@@ -91,6 +91,10 @@
         default () {
           return []
         }
+      },
+      dateParseFormat: {
+        type: String,
+        default: this.dateParseFormat
       }
     },
     data() {
@@ -163,7 +167,7 @@
               year: y,
               month: m,
               day: i
-            }).format('YYYY-MM-DD')
+            }).format(this.dateParseFormat)
 
           if (today.getDate() === i) {
             _temp_day.today = true
@@ -230,6 +234,7 @@
             this.day = day
           }
         }
+        this.daySelect(moment({y:this.year,m: this.month, d: this.day}).format(this.dateParseFormat))
       },
       addActivity() {
         this.activityModal.show = true

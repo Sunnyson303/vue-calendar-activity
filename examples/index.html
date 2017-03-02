@@ -9,6 +9,11 @@
   <link rel="stylesheet" href="http://m.51ykd.com/globalResources/YKDFont/iconFont.css" />
   <link href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
   <style>
+    html,
+    body {
+      font-size: 14px;
+    }
+    
     .calendar-introductions {
       display: flex;
       font-size: 14px;
@@ -38,26 +43,67 @@
     .calendar-introductions span.icon.icon-stop-delivery {
       background: #ddd;
     }
-    .calendar-bottom-content .calendar-is-stop-delivery{
+    
+    .calendar-bottom-content .calendar-is-stop-delivery {
+      font-size: 14px;
       display: flex;
+      justify-content: space-between;
+      padding: 5px 15px;
+      line-height: 30px;
+    }
+    
+    .calendar-bottom-content .calendar-activity-list-empty {
+      text-align: center;
+      padding: 20px 0;
+      line-height: 34px;
     }
   </style>
 </head>
 
 <body>
   <div id="app">
-    <calendar-activity :show="show" :select="select" :plan-delivery="planDelivery" :stop-delivery="stopDelivery" :farmer-delivery="farmerDelivery">
+    <calendar-activity :show="show" :day-select="handleDaySelect" :plan-delivery="planDelivery" :stop-delivery="stopDelivery" :farmer-delivery="farmerDelivery">
       <div class="calendar-bottom-content" slot="bottom-content">
         <div class="calendar-introductions">
           <div class="calendar-introductions-item"><span class="icon icon-plan-delivery">1</span>计划配送日</div>
           <div class="calendar-introductions-item"><span class="icon icon-stop-delivery">2</span>停配期</div>
           <div class="calendar-introductions-item"><span class="icon"><i class="fa fa-star"></i></span>自耕配送</div>
         </div>
-        <div class="calendar-is-stop-delivery">
-          <span>当日是否停配</span>
-          <div class="mui-switch mui-active mui-disabled">
-            <div class="mui-switch-handle"></div>
+        <template v-if="activityList.length">
+          <div class="calendar-is-stop-delivery">
+            <span>当日是否停配</span>
+            <div class="mui-switch mui-active mui-disabled">
+              <div class="mui-switch-handle"></div>
+            </div>
           </div>
+          <div class="calendar-activity-list">
+            <div class="calendar-activity-item" v-for="item in activityList">
+              <div class="order-id">
+                <span v-if="item.type == 'plan'">计划配送单</span>
+                <span v-if="item.type == 'farmer'">自耕计划配送单</span> {{item.id}}
+              </div>
+              <div class="info">
+                <img :src="item.img">
+                <div class="info">
+                  <div class="header-title">{{item.title}}</div>
+                  <div class="address">{{item.address}}</div>
+                  <div class="goods-info">
+                    <span v-for="crop in item.species">
+                                {{crop.title}} * {{crop.num}} +
+                              </span>
+                    <div class="mui-numbox">
+                      <button class="mui-btn mui-btn-numbox-minus" type="button">-</button>
+                      <input class="mui-input-numbox" type="number" />
+                      <button class="mui-btn mui-btn-numbox-plus" type="button">+</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+        <div class="calendar-activity-list-empty" v-else>
+          当天没有配送计划哟，您最近的一次配送在{{closestDeliveryDay}}号<br/> 您可直接去查看哟。 <a href="">前往查看</a>
         </div>
       </div>
     </calendar-activity>
@@ -68,34 +114,82 @@
   <script src="//cdn.bootcss.com/moment.js/2.17.1/moment.min.js"></script>
   <script src="/dist/vue-calendar-activity.js"></script>
   <script>
-    mui.init({
-      swipeBack: true //启用右滑关闭功能
-    });
-    mui('.mui-content .mui-switch').each(function() { //循环所有toggle
-      //toggle.classList.contains('mui-active') 可识别该toggle的开关状态
-      this.parentNode.querySelector('span').innerText = '状态：' + (this.classList.contains('mui-active') ? 'true' : 'false');
-      /**
-       * toggle 事件监听
-       */
-      this.addEventListener('toggle', function(event) {
-        //event.detail.isActive 可直接获取当前状态
-        this.parentNode.querySelector('span').innerText = '状态：' + (event.detail.isActive ? 'true' : 'false');
-      });
-    });
-
+    var dateParseFormat = 'YYYY-MM-DD'
     new Vue({
       el: '#app',
-      data() {
+      data: function() {
         return {
           show: true,
-          planDelivery: [moment('2017-3-2').format('YYYY-MM-DD'), moment('2017-3-3').format('YYYY-MM-DD')],
-          stopDelivery: [moment('2017-3-12').format('YYYY-MM-DD'), moment('2017-3-13').format('YYYY-MM-DD')],
-          farmerDelivery: [moment('2017-3-2').format('YYYY-MM-DD'), moment('2017-3-13').format('YYYY-MM-DD')]
+          today: moment(new Date()).format(dateParseFormat),
+          planDelivery: [moment('2017-3-4').format(dateParseFormat), moment('2017-3-3').format(dateParseFormat)],
+          stopDelivery: [moment('2017-3-12').format(dateParseFormat), moment('2017-3-13').format(dateParseFormat)],
+          farmerDelivery: [moment('2017-3-2').format(dateParseFormat), moment('2017-3-13').format(dateParseFormat)],
+          activityList: [], //某一天的事件列表,
+          closestDeliveryDay: '15' //最近的配送日期
         }
       },
+      created: function() {
+        // fetchDayActivity()
+
+        //初始化请求当天活动事件 传入日期格式  2017-03-02
+        this.handleDaySelect(this.today)
+      },
       methods: {
-        select(val) {
-          console.log('select date is ', val)
+        handleDaySelect(date) {
+          //点击某天后的处理事件 ...
+          // $.ajax 请求配送计划
+
+          //以下为模拟数据 
+          //当天
+          if (date == this.today) {
+            this.activityList = []
+          } else if (date === '2017-3-12' || date === '2017-3-23') {
+            //计划配送
+            this.activityList = [{
+              type: 'plan',
+              id: '2017-3-12A',
+              img: '',
+              title: '缤纷食材包',
+              address: '深圳市南山区深南大道9037号(欧陆风情街)',
+              species: [{
+                  title: '叶菜类',
+                  num: 1
+                },
+                {
+                  title: '根类',
+                  num: 2
+                }
+              ]
+            }]
+          } else if (date === '2017-3-23') {
+            // 计划跟自耕配送
+            this.activityList = [{
+              type: 'plan',
+              id: '2017-3-12A',
+              img: '',
+              title: '缤纷食材包',
+              address: '深圳市南山区深南大道9037号(欧陆风情街)',
+              species: [{
+                  title: '叶菜类',
+                  num: 1
+                },
+                {
+                  title: '根类',
+                  num: 2
+                }
+              ]
+            }, {
+              type: 'farmer',
+              id: '2017-3-23B',
+              img: '',
+              title: '自耕收获配送包',
+              address: '深圳市盐田区大梅沙东部华侨城大峡谷售票处旁',
+              species: [{
+                title: '叶菜类',
+                num: 1
+              }]
+            }]
+          }
         }
       }
     })
