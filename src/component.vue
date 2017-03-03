@@ -131,6 +131,8 @@
     watch: {
       dateSelected(val) {
         if (val.y && val.M) {
+          this.year = val.y
+          this.month = val.M
           this.render(val.y, val.M - 1)
           this.triggerPropsDaySelect()
         }
@@ -183,6 +185,9 @@
               day: i
             }).format(this.dateParseFormat)
 
+          if (this.year === today.getFullYear() && this.month === today.getMonth() && today.getDate() == i) {
+            _temp_day.today = true
+          }
 
 
           //由父组件手动传递选择日期,只有在父组件没有值的情况下 才默认选择今天
@@ -193,9 +198,6 @@
           } else {
             if (this.day == i) {
               _temp_day.selected = true
-              if (this.year === today.getFullYear() && this.month === today.getMonth()) {
-                _temp_day.today = true
-              }
             }
           }
 
@@ -308,6 +310,9 @@
             day.selected = false
           })
         })
+        this.dateSelected = {}
+        this.year = this.today.getFullYear()
+        this.month = this.today.getMonth()
         this.day = this.today.getDate()
         this.render(this.today.getFullYear(), this.today.getMonth())
       },
