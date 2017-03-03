@@ -5,7 +5,7 @@
   <title></title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="http://m.51ykd.com/Frontend/MUI/Css/Style.css">
+  <link rel="stylesheet" href="./css/mui.min.css">
   <link rel="stylesheet" href="http://m.51ykd.com/globalResources/YKDFont/iconFont.css" />
   <link href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
   <style>
@@ -35,6 +35,11 @@
       line-height: 22px;
     }
     
+    .calendar-introductions .mui-icon-arrowright {
+      position: absolute;
+      right: 15px;
+    }
+    
     .calendar-introductions span.icon.icon-plan-delivery {
       border: 1px solid #eee;
       color: #ff5555;
@@ -49,6 +54,9 @@
       display: flex;
       justify-content: space-between;
       padding: 5px 15px;
+    }
+    
+    .calendar-bottom-content .calendar-is-stop-delivery>span {
       line-height: 30px;
     }
     
@@ -56,6 +64,71 @@
       text-align: center;
       padding: 20px 0;
       line-height: 34px;
+    }
+    
+    .calendar-bottom-content .calendar-activity-list .calendar-activity-item {
+      border-top: 1px solid #ddd;
+      border-bottom: 1px solid #ddd;
+      padding: 10px 15px;
+      font-size: 12px;
+      position: relative;
+    }
+    
+    .calendar-bottom-content .calendar-activity-list .switch-container {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+    }
+    
+    .calendar-bottom-content .calendar-activity-list .order-id {
+      font-weight: bold;
+    }
+    
+    .calendar-bottom-content .calendar-activity-list .info {
+      display: flex;
+    }
+    
+    .calendar-bottom-content .calendar-activity-list .info img {
+      width: 80px;
+      height: 80px;
+      background: #eee;
+      margin-right: 10px;
+    }
+    
+    .calendar-bottom-content .calendar-activity-list .info .detail {
+      flex: 1;
+    }
+    
+    .calendar-bottom-content .calendar-activity-list .info .address {
+      margin: 5px 0 10px 0;
+    }
+    
+    .calendar-bottom-content .calendar-activity-list .info .header-title {
+      font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .calendar-bottom-content .calendar-activity-list .info .goods-info {
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .calendar-bottom-content .calendar-activity-list .info .mui-numbox {
+      margin-top: -6px;
+    }
+    
+    .calendar-bottom-content .calendar-activity-list .info .address>span {
+      width: 75%;
+      display: inline-block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      vertical-align: middle;
+    }
+    
+    .calendar-bottom-content .calendar-activity-list .info .address .mui-icon-location {
+      font-size: 20px;
     }
   </style>
 </head>
@@ -68,10 +141,14 @@
           <div class="calendar-introductions-item"><span class="icon icon-plan-delivery">1</span>计划配送日</div>
           <div class="calendar-introductions-item"><span class="icon icon-stop-delivery">2</span>停配期</div>
           <div class="calendar-introductions-item"><span class="icon"><i class="fa fa-star"></i></span>自耕配送</div>
+          <i class="mui-icon mui-icon-arrowright"></i>
         </div>
         <template v-if="activityList.length">
           <div class="calendar-is-stop-delivery">
-            <span>当日是否停配</span>
+            <span>
+              <i class="mui-icon mui-icon-loop"></i>
+              当日是否停配
+            </span>
             <div class="mui-switch mui-active mui-disabled">
               <div class="mui-switch-handle"></div>
             </div>
@@ -80,20 +157,37 @@
             <div class="calendar-activity-item" v-for="item in activityList">
               <div class="order-id">
                 <span v-if="item.type == 'plan'">计划配送单</span>
-                <span v-if="item.type == 'farmer'">自耕计划配送单</span> {{item.id}}
+                <span v-if="item.type == 'farmer'">自耕计划配送单</span> <span class="number">{{item.id}}</span>
+              </div>
+              <div class="switch-container">
+                <div class="mui-switch mui-active"  id="delivery-switch">
+                  <div class="mui-switch-handle"></div>
+                </div>
               </div>
               <div class="info">
                 <img :src="item.img">
-                <div class="info">
-                  <div class="header-title">{{item.title}}</div>
-                  <div class="address">{{item.address}}</div>
+                <div class="detail">
+                  <div class="header-title">
+                    {{item.title}}
+                  </div>
+                  <div class="address">
+                    <i class="mui-icon mui-icon-location"></i>
+                    <span>
+                      {{item.address}}
+                    </span>
+                    <i class="mui-icon mui-icon-arrowright"></i>
+                  </div>
                   <div class="goods-info">
-                    <span v-for="crop in item.species">
-                                {{crop.title}} * {{crop.num}} +
-                              </span>
-                    <div class="mui-numbox">
+                    <div>
+                      <span v-for="(crop, i) in item.species">
+                        <span v-if="i !=0"> + </span>
+                        {{crop.title}} * {{crop.num}}
+                      </span>
+                    </div>
+                  
+                    <div class="mui-numbox" data-numbox-min="1">
                       <button class="mui-btn mui-btn-numbox-minus" type="button">-</button>
-                      <input class="mui-input-numbox" type="number" />
+                      <input class="mui-input-numbox" type="number" value="1"/>
                       <button class="mui-btn mui-btn-numbox-plus" type="button">+</button>
                     </div>
                   </div>
@@ -115,7 +209,7 @@
   <script src="/dist/vue-calendar-activity.js"></script>
   <script>
     var dateParseFormat = 'YYYY-MM-DD'
-    new Vue({
+    var vm = new Vue({
       el: '#app',
       data: function() {
         return {
@@ -134,8 +228,11 @@
         //初始化请求当天活动事件 传入日期格式  2017-03-02
         this.handleDaySelect(this.today)
       },
+      mounted: function() {
+      },
       methods: {
-        handleDaySelect(date) {
+        handleDaySelect: function(date) {
+          console.log('query ', date)
           //点击某天后的处理事件 ...
           // $.ajax 请求配送计划
 
@@ -143,7 +240,7 @@
           //当天
           if (date == this.today) {
             this.activityList = []
-          } else if (date === '2017-3-12' || date === '2017-3-23') {
+          } else if (date === '2017-03-12' || date === '2017-03-23') {
             //计划配送
             this.activityList = [{
               type: 'plan',
@@ -161,7 +258,7 @@
                 }
               ]
             }]
-          } else if (date === '2017-3-23') {
+          } else if (date === '2017-03-23') {
             // 计划跟自耕配送
             this.activityList = [{
               type: 'plan',
@@ -190,6 +287,25 @@
               }]
             }]
           }
+
+          //动态初始化mui组件 
+          this.$nextTick(function() {
+            vm.resetMuiMethods()
+          })
+        },
+        resetMuiMethods: function() {
+          mui('.mui-numbox').numbox()
+          mui('.mui-switch')['switch']()
+
+          setTimeout(function() {
+            document.getElementById("delivery-switch").addEventListener("toggle", function(event) {
+              if (event.detail.isActive) {
+                console.log("你启动了开关");
+              } else {
+                console.log("你关闭了开关");
+              }
+            })
+          },1000)
         }
       }
     })

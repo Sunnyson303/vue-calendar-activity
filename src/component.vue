@@ -24,7 +24,7 @@
             {{item.day | zero}}
             <span class="calendar-today-tips" >今天</span>
             <i class="fa fa-star calendar-star"></i>
-            <i class="fa fa-location-arrow calendar-location-arrow"></i>
+            <i class="mui-icon mui-icon-location calendar-location-arrow"></i>
           </div>
         </div>
       </div>
@@ -94,7 +94,7 @@
       },
       dateParseFormat: {
         type: String,
-        default: this.dateParseFormat
+        default: 'YYYY-MM-DD'
       }
     },
     data() {
@@ -133,7 +133,6 @@
         }
       },
       render(y, m) {
-        console.log(this);
         let currMonthFirstDay = new Date(y, m, 1).getDay(), //本月第一天是周几
           currMonthDays = new Date(y, m + 1, 0).getDate(), //本月总天数
           lastMonthDays = new Date(y, m, 0).getDate(), //上个月总天数
@@ -234,7 +233,7 @@
             this.day = day
           }
         }
-        this.daySelect(moment({y:this.year,m: this.month, d: this.day}).format(this.dateParseFormat))
+        this.daySelect(moment({y:this.year,M: this.month, d: this.day}).format(this.dateParseFormat))
       },
       addActivity() {
         this.activityModal.show = true
@@ -375,6 +374,8 @@
                 .absolute;
                 top: 4px;
                 right: 6px;
+                font-size: 14px;
+                font-weight: bold;
               }
             }
             &.calendar-day-stop-delivery {
