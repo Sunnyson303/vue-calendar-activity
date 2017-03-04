@@ -133,7 +133,7 @@
         if (val.y && val.M) {
           this.year = val.y
           this.month = val.M-1
-          this.day = val.d
+          this.day = val.d || this.day
           this.render(val.y, val.M - 1)
           this.triggerPropsDaySelect()
         }
@@ -186,7 +186,6 @@
               day: i
             }).format(this.dateParseFormat)
 
-            console.log(this.year, today.getFullYear(), this.month , today.getMonth() ,today.getDate() , i)
           if (y == today.getFullYear() && m == today.getMonth() && today.getDate() == i) {
             _temp_day.today = true
           }
