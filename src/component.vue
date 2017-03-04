@@ -132,7 +132,8 @@
       dateSelected(val) {
         if (val.y && val.M) {
           this.year = val.y
-          this.month = val.M
+          this.month = val.M-1
+          this.day = val.d
           this.render(val.y, val.M - 1)
           this.triggerPropsDaySelect()
         }
@@ -185,7 +186,8 @@
               day: i
             }).format(this.dateParseFormat)
 
-          if (this.year === today.getFullYear() && this.month === today.getMonth() && today.getDate() == i) {
+            console.log(this.year, today.getFullYear(), this.month , today.getMonth() ,today.getDate() , i)
+          if (y == today.getFullYear() && m == today.getMonth() && today.getDate() == i) {
             _temp_day.today = true
           }
 
@@ -254,6 +256,8 @@
           } else if (deltax < -100 && (deltay >= 50 || deltay <= 50)) {
             self.prevMonth()
           }
+          deltax = 0
+          deltay = 0
         })
       },
       handleSlideUpDown() {
@@ -274,7 +278,7 @@
           deltay = end.y - start.y
         })
         $target.addEventListener('touchend', function(e) {
-          if (deltay > 100 && (deltax >= 50 || deltax <= 50)) {
+          if (deltay > 200 && (deltax >= 50 || deltax <= 50)) {
             self.changeToMonth()
           } else if (deltay < -100 && (deltax >= 50 || deltax <= 50)) {
             self.changeToWeek()
@@ -310,11 +314,15 @@
             day.selected = false
           })
         })
-        this.dateSelected = {}
-        this.year = this.today.getFullYear()
-        this.month = this.today.getMonth()
-        this.day = this.today.getDate()
+        
+        // this.year = this.today.getFullYear()
+        // this.month = this.today.getMonth()
+        // this.day = this.today.getDate()
+        this.dateSelected.d = this.day = this.today.getDate()
         this.render(this.today.getFullYear(), this.today.getMonth())
+        this.$nextTick(() => {
+          this.triggerPropsDaySelect()
+        })
       },
       handleDayClick(l, i) {
         this.days.forEach((line) => {
